@@ -58,7 +58,7 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
             exportTask = NSTask();
             exportTask.launchPath = "/usr/bin/xcrun"
             exportPath = path
-            exportTask.arguments = ["-sdk iphoneos","PackageApplication",archive.appPath!,"--embed",provisioning.identifier!,"-o",exportPath]
+            exportTask.arguments = ["--sdk","iphoneos","PackageApplication",archive.appPath!,"--embed",provisioning.identifier!,"-o",exportPath]
             exportTask.launch()
             setIsExporting(true)
             timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: "checkResult", userInfo: nil, repeats: true)
