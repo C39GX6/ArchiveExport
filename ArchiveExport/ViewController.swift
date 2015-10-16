@@ -33,12 +33,12 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
             return
         }
         
-        var archive = selectedArchive()
-        var provisioning = selectedProvisining()
+        let archive = selectedArchive()
+        let provisioning = selectedProvisining()
         if archive == nil || provisioning == nil{
             return
         }
-        var savePanel = NSSavePanel();
+        let savePanel = NSSavePanel();
         savePanel.allowedFileTypes = ["ipa"]
         savePanel.allowsOtherFileTypes = false
         savePanel.directoryURL = NSURL(fileURLWithPath: NSHomeDirectory()+"/Desktop")
@@ -52,13 +52,13 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
             return
         }
         statLabel.stringValue = ""
-        var archive = selectedArchive()
-        var provisioning = selectedProvisining()
+        let archive = selectedArchive()
+        let provisioning = selectedProvisining()
         if archive != nil && provisioning != nil{
             exportTask = NSTask();
             exportTask.launchPath = "/usr/bin/xcrun"
             exportPath = path
-            exportTask.arguments = ["-sdk iphoneos","PackageApplication",archive.appPath,"--embed",provisioning.identifier,"-o",exportPath]
+            exportTask.arguments = ["-sdk iphoneos","PackageApplication",archive.appPath!,"--embed",provisioning.identifier!,"-o",exportPath]
             exportTask.launch()
             setIsExporting(true)
             timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: "checkResult", userInfo: nil, repeats: true)
@@ -118,20 +118,20 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
     }
     
     func updateArchiveInfo(){
-        var archive = self.selectedArchive()
+        let archive = self.selectedArchive()
         if archive == nil {
             infoLabel.stringValue = "没有发现包"
             return
         }
         iconView.image = archive.icon
-        var info = "\(archive.name)\n" + "Identifier:\(archive.identifier)\n" +
-            "Version:\(archive.version)   Build:\(archive.buildVersion)\n" + "Create Date:\(archive.dateString)"
-        infoLabel.alignment = NSTextAlignment.LeftTextAlignment
+        let info = "\(archive.name)\n" + "Identifier:\(archive.identifier)\n" +
+            "Version:\(archive.version) Build:\(archive.buildVersion)\n" + "Create Date:\(archive.dateString)"
+        infoLabel.alignment = .Left
         infoLabel.stringValue = info
         
-        var provisioning = AEProvisioning(filePath: archive.appPath.stringByAppendingPathComponent("embedded.mobileprovision"));
+        let provisioning = AEProvisioning(filePath: archive.appPath + "/embedded.mobileprovision");
         
-        for (index, i: AEProvisioning) in enumerate(provisionings){
+        for (index,i) in provisionings.enumerate(){
             if i.identifier == provisioning.identifier{
                 provisioningButton.selectItemAtIndex(index)
                 break
@@ -140,23 +140,22 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
     }
     
     func reloadArchives(){
-        let archivePaths = self.archivePaths()!
+        let archivePaths = self.archivePaths()
         archives = [AEArchive]()
 
         for path:String in archivePaths{
             archives.append(AEArchive(path: path));
         }
-        archives = sorted(archives,{$0.createDate.compare($1.createDate) == NSComparisonResult.OrderedDescending})
-        var selectedItem = archiveButton.selectedItem
+        archives = archives.sort{$0.createDate.compare($1.createDate) == .OrderedDescending}
+        let selectedItem = archiveButton.selectedItem
         archiveButton.removeAllItems()
         var archiveNames = [String]()
         for archive:AEArchive in archives{
-            var displayName = "\(archive.name)_\(archive.version) \(archive.dateString)"
+            let displayName = "\(archive.name)_\(archive.version) \(archive.dateString)"
             archiveNames.append(displayName);
         }
         archiveButton.addItemsWithTitles(archiveNames)
-        for i:AnyObject in archiveButton.itemArray{
-            let item = i as! NSMenuItem
+        for item:NSMenuItem in archiveButton.itemArray{
             if item.title == selectedItem?.title{
                 archiveButton.selectItem(item)
                 break
@@ -164,22 +163,23 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         }
         
         provisionings = [AEProvisioning]()
-        let provisioningPaths = self.provisioningPaths()!
+        let provisioningPaths = self.provisioningPaths()
         for path:String in provisioningPaths{
             provisionings.append(AEProvisioning(filePath:path));
         }
         provisioningButton.removeAllItems()
-        var provisioningNames = [String]()
-        for provisioning:AEProvisioning in provisionings{
-            var displayName = provisioning.name
-            provisioningNames.append(displayName);
+        for (index,provisioning) in provisionings.enumerate(){
+            if let displayName = provisioning.name{
+                provisioningButton.addItemWithTitle("(\(index))"+displayName)
+            } else {
+                provisioningButton.addItemWithTitle("(\(index))unknow")
+            }
         }
-        provisioningButton.addItemsWithTitles(provisioningNames)
         
         self.updateArchiveInfo()
     }
 
-    func archivePaths()->[String]?{
+    func archivePaths()->[String]{
         let fileManger = NSFileManager.defaultManager()
         var archives = [String]()
         let archivesHome = NSHomeDirectory() + "/Library/Developer/Xcode/Archives/";
@@ -195,7 +195,7 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         return archives
     }
 
-    func provisioningPaths()->[String]?{
+    func provisioningPaths()->[String]{
         let fileManger = NSFileManager.defaultManager()
         var provisionings = [String]()
         let provisioningsHome = NSHomeDirectory() + "/Library/MobileDevice/Provisioning Profiles/";

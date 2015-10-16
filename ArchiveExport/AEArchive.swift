@@ -29,7 +29,7 @@ class AEArchive: NSObject {
     }
     
     init(path:String) {
-        let infoPath = path.stringByAppendingPathComponent("info.plist")
+        let infoPath = path + "/info.plist"
         let info = NSDictionary(contentsOfFile: infoPath)
         createDate = info?.objectForKey("CreationDate") as! NSDate
         name = info?.objectForKey("Name") as! String
@@ -42,13 +42,13 @@ class AEArchive: NSObject {
             identifier = applicationProperties.objectForKey("CFBundleIdentifier") as! String
             
             let appBundleName = applicationProperties.objectForKey("ApplicationPath") as! String
-            appPath = path.stringByAppendingPathComponent("Products/"+appBundleName)
+            appPath = path + "/Products/" + appBundleName
             
             let iconPaths = applicationProperties.objectForKey("IconPaths") as! NSArray!
             
             if iconPaths != nil{
                 let iconName = iconPaths.objectAtIndex(0) as! String
-                let iconPath = path.stringByAppendingPathComponent("Products/"+iconName);
+                let iconPath = path + "/Products/" + iconName;
                 icon = NSImage(contentsOfFile: iconPath)
             }
         }
