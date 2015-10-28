@@ -19,7 +19,6 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
     
     @IBOutlet weak var infoLabel: NSTextField!
     var exportTask : NSTask!
-    var timer : NSTimer!
     var exportPath : String!
     
     var archives : [AEArchive]!
@@ -42,7 +41,7 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         savePanel.allowedFileTypes = ["ipa"]
         savePanel.allowsOtherFileTypes = false
         savePanel.directoryURL = NSURL(fileURLWithPath: NSHomeDirectory()+"/Desktop")
-        savePanel.nameFieldStringValue = archive.name
+        savePanel.nameFieldStringValue = archive!.name
         savePanel.delegate = self
         savePanel.beginSheetModalForWindow(self.view.window!, completionHandler:{(NSModalResponse) -> () in })
     }
@@ -58,10 +57,10 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
             exportTask = NSTask();
             exportTask.launchPath = "/usr/bin/xcrun"
             exportPath = path
-            exportTask.arguments = ["--sdk","iphoneos","PackageApplication",archive.appPath!,"--embed",provisioning.identifier!,"-o",exportPath]
+            exportTask.arguments = ["--sdk","iphoneos","PackageApplication",archive!.appPath!,"--embed",provisioning!.identifier!,"-o",exportPath]
             exportTask.launch()
             setIsExporting(true)
-            timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: "checkResult", userInfo: nil, repeats: true)
+            exportTask.terminationHandler = {[weak self](_:NSTask) in dispatch_async(dispatch_get_main_queue(), {self!.checkResult()})}
         }
     }
     
@@ -88,7 +87,6 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         exportButton.enabled = !exporting
         if !exporting {
             exportTask = nil;
-            timer = nil;
             indicator.stopAnimation(nil)
         } else {
             indicator.startAnimation(nil)
@@ -99,7 +97,7 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         updateArchiveInfo()
     }
     
-    func selectedArchive()->AEArchive!{
+    func selectedArchive()->AEArchive?{
         let selectedIndex = archiveButton.indexOfSelectedItem
         var archive : AEArchive!
         if selectedIndex >= 0{
@@ -108,9 +106,9 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         return archive
     }
     
-    func selectedProvisining()->AEProvisioning!{
+    func selectedProvisining()->AEProvisioning?{
         let selectedIndex = provisioningButton.indexOfSelectedItem
-        var provisioning : AEProvisioning!
+        var provisioning : AEProvisioning?
         if selectedIndex >= 0 {
           provisioning = provisionings[selectedIndex]
         }
@@ -123,16 +121,17 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
             infoLabel.stringValue = "没有发现包"
             return
         }
-        iconView.image = archive.icon
-        let info = "\(archive.name)\n" + "Identifier:\(archive.identifier)\n" +
-            "Version:\(archive.version) Build:\(archive.buildVersion)\n" + "Create Date:\(archive.dateString)"
+        iconView.image = archive!.icon
+        let info = "\(archive!.name)\n" +
+            "Identifier:\(archive!.identifier)\n" +
+            "Version:\(archive!.version) Build:\(archive!.buildVersion)\n" + "Create Date:\(archive!.dateString)"
         infoLabel.alignment = .Left
         infoLabel.stringValue = info
         
-        let provisioning = AEProvisioning(filePath: archive.appPath + "/embedded.mobileprovision");
+        let archiveProvisioning = AEProvisioning(filePath: archive!.appPath + "/embedded.mobileprovision");
         
-        for (index,i) in provisionings.enumerate(){
-            if i.identifier == provisioning.identifier{
+        for (index,provisioning) in provisionings.enumerate(){
+            if provisioning.identifier == archiveProvisioning.identifier{
                 provisioningButton.selectItemAtIndex(index)
                 break
             }
@@ -143,14 +142,14 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         let archivePaths = self.archivePaths()
         archives = [AEArchive]()
 
-        for path:String in archivePaths{
-            archives.append(AEArchive(path: path));
+        for path in archivePaths{
+            archives.append(AEArchive(path: path))
         }
         archives = archives.sort{$0.createDate.compare($1.createDate) == .OrderedDescending}
         let selectedItem = archiveButton.selectedItem
         archiveButton.removeAllItems()
         var archiveNames = [String]()
-        for archive:AEArchive in archives{
+        for archive in archives{
             let displayName = "\(archive.name)_\(archive.version) \(archive.dateString)"
             archiveNames.append(displayName);
         }
@@ -164,7 +163,7 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         
         provisionings = [AEProvisioning]()
         let provisioningPaths = self.provisioningPaths()
-        for path:String in provisioningPaths{
+        for path in provisioningPaths{
             provisionings.append(AEProvisioning(filePath:path));
         }
         provisioningButton.removeAllItems()
@@ -184,10 +183,9 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         var archives = [String]()
         let archivesHome = NSHomeDirectory() + "/Library/Developer/Xcode/Archives/";
         if let enumerator = fileManger.enumeratorAtPath(archivesHome){
-            while let path: AnyObject = enumerator.nextObject(){
-                let subpath = path as! String
-                if subpath.hasSuffix(".xcarchive"){
-                    archives.append(archivesHome+subpath)
+            while let file = enumerator.nextObject() as! String!{
+                if file.hasSuffix(".xcarchive"){
+                    archives.append(archivesHome+file)
                     enumerator.skipDescendants();
                 }
             }
@@ -200,10 +198,9 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         var provisionings = [String]()
         let provisioningsHome = NSHomeDirectory() + "/Library/MobileDevice/Provisioning Profiles/";
         if let enumerator = fileManger.enumeratorAtPath(provisioningsHome){
-            while let path: AnyObject = enumerator.nextObject(){
-                let subpath = path as! String
-                if subpath.hasSuffix(".mobileprovision"){
-                    provisionings.append(provisioningsHome+subpath)
+            while let file = enumerator.nextObject() as! String!{
+                if file.hasSuffix(".mobileprovision"){
+                    provisionings.append(provisioningsHome+file)
                     enumerator.skipDescendants();
                 }
             }
@@ -217,12 +214,6 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         self.view.window?.delegate = self
         NSNotificationCenter.defaultCenter().addObserver(self, selector:"applicationDidBecomeActiveNotification:", name: NSApplicationDidBecomeActiveNotification, object:nil)
         // Do any additional setup after loading the view.
-    }
-
-    override var representedObject: AnyObject? {
-        didSet {
-        // Update the view, if already loaded.
-        }
     }
 
     func panel(sender: AnyObject, userEnteredFilename filename: String, confirmed okFlag: Bool) -> String?
