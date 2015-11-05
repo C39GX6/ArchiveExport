@@ -54,13 +54,13 @@ class ViewController: NSViewController,NSOpenSavePanelDelegate,NSWindowDelegate{
         let archive = selectedArchive()
         let provisioning = selectedProvisining()
         if archive != nil && provisioning != nil{
+            exportPath = path
             exportTask = NSTask();
             exportTask.launchPath = "/usr/bin/xcrun"
-            exportPath = path
             exportTask.arguments = ["--sdk","iphoneos","PackageApplication",archive!.appPath!,"--embed",provisioning!.identifier!,"-o",exportPath]
-            exportTask.launch()
             setIsExporting(true)
-            exportTask.terminationHandler = {[weak self](_:NSTask) in dispatch_async(dispatch_get_main_queue(), {self!.checkResult()})}
+            exportTask.terminationHandler = {[weak self](_:NSTask) in dispatch_async(dispatch_get_main_queue(), {self?.checkResult()})}
+            exportTask.launch()
         }
     }
     

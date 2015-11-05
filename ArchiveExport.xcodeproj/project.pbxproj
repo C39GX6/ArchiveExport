@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DC7116571BE2384800463C35 /* libobjc.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = DC7116561BE2384800463C35 /* libobjc.tbd */; };
 		DCCD33B31A00BD160052D8F9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCCD33B21A00BD160052D8F9 /* AppDelegate.swift */; };
 		DCCD33B51A00BD160052D8F9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCCD33B41A00BD160052D8F9 /* ViewController.swift */; };
 		DCCD33B71A00BD160052D8F9 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DCCD33B61A00BD160052D8F9 /* Images.xcassets */; };
@@ -27,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		DC7116561BE2384800463C35 /* libobjc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libobjc.tbd; path = usr/lib/libobjc.tbd; sourceTree = SDKROOT; };
 		DCCD33AD1A00BD160052D8F9 /* ArchiveExport.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ArchiveExport.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DCCD33B11A00BD160052D8F9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DCCD33B21A00BD160052D8F9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -45,6 +47,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DC7116571BE2384800463C35 /* libobjc.tbd in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,6 +64,7 @@
 		DCCD33A41A00BD160052D8F9 = {
 			isa = PBXGroup;
 			children = (
+				DC7116561BE2384800463C35 /* libobjc.tbd */,
 				DCCD33AF1A00BD160052D8F9 /* ArchiveExport */,
 				DCCD33C21A00BD160052D8F9 /* ArchiveExportTests */,
 				DCCD33AE1A00BD160052D8F9 /* Products */,
